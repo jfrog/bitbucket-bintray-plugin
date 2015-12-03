@@ -18,58 +18,23 @@ module.exports = function (app, addon) {
         });
     });
 
-    app.get('/associate-package', addon.authenticate(), function (req, res) {
-            res.render('associate-package', {
-                associatedPackagePath: 'Atlassian Connect'
+    app.get('/browse-package-versions', addon.authenticate(), function (originalReq, originalRes) {
+            var repoPath = originalReq.query['repoPath'];
+        var httpClient = addon.httpClient(originalReq);
+
+            var repoChangeset = repoChangesetUrl(repoPath);
+            httpClient.get(repoChangeset, function (changesetErr, changesetResponse, rawChangesetData) {
+                var rev = latestRev(rawChangesetData);
+
+                var bintrayRepoFile = bintrayRepoFileUrl(originalReq.query.repoPath, rev);
+                httpClient.get(bintrayRepoFile, function (bintrayRepoFileErr, bintrayRepoFileResponse, bintrayRepoFileData) {
+
+                    var options = bintrayRequestOptions(bintrayRepoFileData);
+                    requestBintrayPackageInfo(options, originalRes);
+                });
             });
         }
     );
-
-    app.get('/browse-package-files', addon.authenticate(), function (req, res) {
-            var repoPath = req.query['repo_path'];
-
-            var options = {
-                host: 'api.bintray.com',
-                port: 443,
-                path: '/packages/jfrog/jfrog-jars/gradle-bintray-plugin',
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            };
-            var bintrayReq = https.request(options, function (bintrayRes) {
-                var output = '';
-                console.log(options.host + ':' + bintrayRes.statusCode);
-                bintrayRes.setEncoding('utf8');
-
-                bintrayRes.on('data', function (chunk) {
-                    output += chunk;
-                });
-
-                bintrayRes.on('end', function () {
-                    var obj = JSON.parse(output);
-                    console.log("onResult: " + JSON.stringify(obj));
-                    res.render('browse-package-files', {
-                        title: obj['name'],
-                        owner: obj['owner'],
-                        repo: obj['repo'],
-                        latestVersion: obj['latest_version'],
-                        versions: obj['versions']
-                    });
-                });
-            });
-
-            bintrayReq.on('error', function (err) {
-                res.send('error: ' + err.message);
-            });
-
-            bintrayReq.end();
-
-        }
-    );
-
-    // Add any additional route handlers you need for views or REST resources here...
-
 
     // load any additional files you have in routes and apply those to the app
     {
@@ -88,5 +53,64 @@ module.exports = function (app, addon) {
                 routes(app, addon);
             }
         }
+    }
+
+    function latestRev(rawChangesetData) {
+        var changesetData = JSON.parse(rawChangesetData);
+        return changesetData.changesets[0].raw_node;
+    }
+
+    function repoChangesetUrl(repoPath) {
+        return '/api/1.0/repositories/' + repoPath + '/changesets?limit=1'
+    }
+
+    function bintrayRepoFileUrl(repoPath, rev) {
+        return '/api/1.0/repositories/' + repoPath + '/src/' + rev + '/.bintray-package.json'
+    }
+
+    function bintrayRequestOptions(bintrayRepoFileData) {
+        var bintrayRepoFileContent = JSON.parse(bintrayRepoFileData).data;
+        var bintrayRepoFile = JSON.parse(bintrayRepoFileContent);
+
+        var options = {
+            host: 'api.bintray.com',
+            port: 443,
+            path: '/packages/' + bintrayRepoFile.path,
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+
+        return options;
+    }
+
+    function requestBintrayPackageInfo(options, originalRes) {
+        var bintrayReq = https.request(options, function (bintrayRes) {
+            bintrayRes.setEncoding('utf8');
+
+            var output = '';
+            bintrayRes.on('data', function (chunk) {
+                output += chunk;
+            });
+
+            bintrayRes.on('end', function () {
+                var obj = JSON.parse(output);
+                console.log("onResult: " + JSON.stringify(obj));
+                originalRes.render('browse-package-versions', {
+                    title: obj['name'],
+                    owner: obj['owner'],
+                    repo: obj['repo'],
+                    latestVersion: obj['latest_version'],
+                    versions: obj['versions']
+                });
+            });
+        });
+
+        bintrayReq.on('error', function (err) {
+            originalRes.send('error: ' + err.message);
+        });
+
+        bintrayReq.end();
     }
 };

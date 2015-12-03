@@ -20,22 +20,20 @@
     },
     "repoPage": [
       {
-        "key": "browse-package-files",
-        "url": "/browse-package-files?repoPath={repo_path}",
+        "key": "browse-package-versions",
+        "url": "/browse-package-versions?repoPath={repo_path}",
         "name": {
-          "value": "Package Files"
+          "value": "Bintray Package"
         },
-        "location": "org.bitbucket.repository.navigation"
-      }
-    ],
-    "adminPage": [
-      {
-        "key": "associate-package",
-        "url": "/associate-package?repoPath={repo_path}",
-        "name": {
-          "value": "Bintray Package Association"
-        },
-        "location": "org.bitbucket.repository.admin"
+        "location": "org.bitbucket.repository.navigation",
+        "conditions": [
+          {
+            "condition": "has_file",
+            "params": {
+              "filename": ".bintray-package.json"
+            }
+          }
+        ]
       }
     ]
   },
