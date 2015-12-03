@@ -1,0 +1,15 @@
+{
+  "name": "my-addon",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "~3.3.4",
+    "express-hbs": "*",
+    "static-expiry": ">=0.0.5",
+    "atlassian-connect-express-bitbucket": "*",
+    "jugglingdb-sqlite3": "0.0.5"
+  }
+}

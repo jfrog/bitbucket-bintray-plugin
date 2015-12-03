@@ -1,0 +1,21 @@
+{{!< layout}}
+<div class="aui-page-panel-content main">
+    <!--<div class="aui-page-panel-inner">-->
+    <section class="aui-page-panel-item">
+        <h3>Bintray Package</h3>
+        <form id="associate-package" class="aui" onsubmit="">
+            <div class="field-group">
+                <label for="package-path">Package Path</label>
+                <input class="text long-field" type="text"
+                       id="package-path" name="package-path" placeholder="username/repo/package">
+                <div class="description">The relative path of the Bintray package you'd like to associate</div>
+            </div>
+            <div class="buttons-container">
+                <div class="aui-buttons">
+                    <button form="associate-package" id="save-package-path" type="submit" class="aui-button aui-button-primary">Save</button>
+                </div>
+            </div>
+        </form>
+    </section>
+    <!--</div>-->
+</div>

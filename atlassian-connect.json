@@ -1,0 +1,49 @@
+{
+  "key": "bitbucket-bintray-addon",
+  "name": "BitBucket Bintray Add-On",
+  "description": "A Bintray add-on for Atlassian Bitbucket",
+  "vendor": {
+    "name": "Noam Y. Tenne",
+    "url": "www.10ne.org"
+  },
+  "baseUrl": "{{localBaseUrl}}",
+  "authentication": {
+    "type": "jwt"
+  },
+  "lifecycle": {
+    "installed": "/installed",
+    "uninstalled": "/uninstalled"
+  },
+  "modules": {
+    "oauthConsumer": {
+      "clientId": "{{consumerKey}}"
+    },
+    "repoPage": [
+      {
+        "key": "browse-package-files",
+        "url": "/browse-package-files?repoPath={repo_path}",
+        "name": {
+          "value": "Package Files"
+        },
+        "location": "org.bitbucket.repository.navigation"
+      }
+    ],
+    "adminPage": [
+      {
+        "key": "associate-package",
+        "url": "/associate-package?repoPath={repo_path}",
+        "name": {
+          "value": "Bintray Package Association"
+        },
+        "location": "org.bitbucket.repository.admin"
+      }
+    ]
+  },
+  "scopes": [
+    "account",
+    "repository"
+  ],
+  "contexts": [
+    "account"
+  ]
+}

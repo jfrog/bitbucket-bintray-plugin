@@ -1,0 +1,26 @@
+{{!< layout}}
+<div class="aui-page-panel-content main">
+    <!--<div class="aui-page-panel-inner">-->
+    <section class="aui-page-panel-item">
+        <h3>{{title}}</h3>
+        <table class="aui">
+            <thead>
+            <tr>
+                <th id="owner">Owner</th>
+                <th id="repo">Repository</th>
+                <th id="latestVersion">Latest Version</th>
+                <th id="versions">Versions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td headers="owner">{{owner}}</td>
+                <td headers="repo">{{repo}}</td>
+                <td headers="latestVersion"><span class="aui-lozenge aui-lozenge-subtle aui-lozenge-success"><a href="http://bintray.com/{{owner}}/{{repo}}/{{title}}/{{latestVersion}}" target="_blank">{{latestVersion}}</a></span></td>
+                <td headers="versions">{{#each versions}}<span class="aui-lozenge aui-lozenge-subtle"><a href="http://bintray.com/{{../owner}}/{{../repo}}/{{../title}}/{{this}}" target="_blank">{{this}}</a></span>{{/each}}</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+    <!--</div>-->
+</div>
