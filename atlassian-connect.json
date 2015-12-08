@@ -18,6 +18,16 @@
     "oauthConsumer": {
       "clientId": "{{consumerKey}}"
     },
+    "adminPage": [
+      {
+        "key": "associate-package",
+        "url": "/associate-package?repoPath={repo_path}",
+        "name": {
+          "value": "Associate Bintray Package"
+        },
+        "location": "org.bitbucket.repository.admin"
+      }
+    ],
     "repoPage": [
       {
         "key": "browse-package-versions",
