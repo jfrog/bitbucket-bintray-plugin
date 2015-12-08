@@ -18,10 +18,13 @@ module.exports = function (app, addon) {
         });
     });
 
+    app.get('/associate-user', addon.authenticate(), function (req, res) {
+            res.render('associate-user', {});
+        }
+    );
+
     app.get('/associate-package', addon.authenticate(), function (req, res) {
-            res.render('associate-package', {
-                packagePath: 'Atlassian Connect'
-            });
+            res.render('associate-package', {});
         }
     );
 

@@ -26,6 +26,14 @@
           "value": "Associate Bintray Package"
         },
         "location": "org.bitbucket.repository.admin"
+      },
+      {
+        "key": "associate-user",
+        "url": "/associate-user?repoPath={repo_path}",
+        "name": {
+          "value": "Associate Bintray User"
+        },
+        "location": "org.bitbucket.account.admin"
       }
     ],
     "repoPage": [
