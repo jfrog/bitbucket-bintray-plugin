@@ -18,7 +18,14 @@ module.exports = function (app, addon) {
         });
     });
 
-    app.get('/associate-user', addon.authenticate(), function (req, res) {
+    app.post('/associate-user', function (req, res) {
+            console.log("USERNAME IS : " + req.body.username);
+            console.log("API KEY IS : " + req.body.apiKey);
+            res.render('associate-user', {});
+        }
+    );
+
+    app.get('/associate-user', function (req, res) {
             res.render('associate-user', {});
         }
     );
@@ -28,9 +35,15 @@ module.exports = function (app, addon) {
         }
     );
 
+    app.post('/associate-package', function (req, res) {
+            console.log("PACKAGE PATH IS : " + req.body.packagePath);
+            res.render('associate-package', {});
+        }
+    );
+
     app.get('/browse-package-versions', addon.authenticate(), function (originalReq, originalRes) {
             var repoPath = originalReq.query['repoPath'];
-        var httpClient = addon.httpClient(originalReq);
+            var httpClient = addon.httpClient(originalReq);
 
             var repoChangeset = repoChangesetUrl(repoPath);
             httpClient.get(repoChangeset, function (changesetErr, changesetResponse, rawChangesetData) {

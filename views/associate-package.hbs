@@ -1,9 +1,9 @@
 {{!< layout}}
 <div class="aui-page-panel-content main">
-    <!--<div class="aui-page-panel-inner">-->
     <section class="aui-page-panel-item">
         <h3>Bintray Package</h3>
-        <form id="associate-package" class="aui" onsubmit="">
+        <form id="associate-package" class="aui" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="action" value="associate-package">
             <div class="field-group">
                 <label for="packagePath">Package Path</label>
                 <input class="text long-field" type="text"
@@ -17,5 +17,4 @@
             </div>
         </form>
     </section>
-    <!--</div>-->
 </div>

@@ -1,25 +1,30 @@
 {{!< layout}}
 <div class="aui-page-panel-content main">
-    <!--<div class="aui-page-panel-inner">-->
     <section class="aui-page-panel-item">
         <h3>Bintray User</h3>
-        <form id="associate-user" class="aui" onsubmit="">
+
+        <form id="associate-user" class="aui" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="action" value="associate-user">
+
             <div class="field-group">
                 <label for="username">Username</label>
                 <input class="text long-field" type="text"
                        id="username" name="username" placeholder="joeybloggs">
+
                 <div class="description">The name of your Bintray authenticating subject</div>
                 <label for="apiKey">API Key</label>
                 <input class="password long-field" type="password"
                        id="apiKey" name="apiKey" placeholder="secret">
+
                 <div class="description">The API key of your Bintray authenticating subject</div>
             </div>
             <div class="buttons-container">
                 <div class="aui-buttons">
-                    <button form="associate-user" id="save-user-credentials" type="submit" class="aui-button aui-button-primary">Save</button>
+                    <button form="associate-user" id="save-user-credentials" type="submit"
+                            class="aui-button aui-button-primary">Save
+                    </button>
                 </div>
             </div>
         </form>
     </section>
-    <!--</div>-->
 </div>
