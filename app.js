@@ -11,6 +11,31 @@ var ac = require('atlassian-connect-express-bitbucket');
 process.env.PWD = process.env.PWD || process.cwd(); // Fix expiry on Windows :(
 var expiry = require('static-expiry');
 
+var Schema = require('jugglingdb').Schema;
+var schema = new Schema('sqlite3', {
+  database: ':memory:'
+});
+
+var BintrayUser = schema.define('BintrayUser', {
+  bitBucketUsername: String,
+  bintrayUsername: String,
+  apiKey: String
+});
+
+schema.autoupdate();
+
+global.getSchema = function(){
+  return schema;
+};
+
+global.getBintrayUser = function(){
+  return BintrayUser;
+};
+
+global.getBintrayPackageAssociation = function(){
+  return BintrayPackageAssociation;
+};
+
 var hbs = require('express-hbs');
 var http = require('http');
 var path = require('path');

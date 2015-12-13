@@ -29,7 +29,7 @@
       },
       {
         "key": "associate-user",
-        "url": "/associate-user?repoPath={repo_path}",
+        "url": "/associate-user?repoPath={repo_path}&bitBucketUsername={user_username}",
         "name": {
           "value": "Associate Bintray User"
         },

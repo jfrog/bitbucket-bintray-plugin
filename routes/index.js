@@ -19,16 +19,57 @@ module.exports = function (app, addon) {
     });
 
     app.post('/associate-user', function (req, res) {
-            console.log("USERNAME IS : " + req.body.username);
-            console.log("API KEY IS : " + req.body.apiKey);
-            res.render('associate-user', {});
+            var bitBucketUsername = req.query['bitBucketUsername'];
+            var bintrayUsername = req.body.username;
+            var apiKey = req.body.apiKey;
+
+            var BintrayUser = getBintrayUser();
+            BintrayUser.findOne({where: {bitBucketUsername: bitBucketUsername}}, function (err, data) {
+                if (err) {
+                    res.send('Error occurred while querying for an already existing associated Bintray user: ' + err.message);
+                    return;
+                }
+                if (data == null) {
+                    var newUser = new BintrayUser({bitBucketUsername: bitBucketUsername, bintrayUsername: bintrayUsername, apiKey: apiKey});
+                    newUser.save(function (err) {
+                        if (err) {
+                            res.send('Error occurred while creating a new associated Bintray user:' + err.message);
+                        } else {
+                            console.log('BINTRAY: CREATING NEW ASSOCIATION OF ' + bitBucketUsername + ' WITH ' + bintrayUsername);
+                        }
+                    });
+                } else {
+                    data.merge({bintrayUsername: bintrayUsername, apiKey: apiKey});
+                    data.save(function (err) {
+                        if (err) {
+                            res.send('Error occurred while updating associated Bintray user:' + err.message);
+                        } else {
+                            console.log('BINTRAY: UPDATING EXISTING ASSOCIATION OF ' + bitBucketUsername + ' WITH ' + bintrayUsername);
+                        }
+                    });
+                }
+            });
+
+            res.render('associate-user', {username: bintrayUsername, apiKey: apiKey});
         }
     );
 
     app.get('/associate-user', function (req, res) {
-            res.render('associate-user', {});
-        }
-    );
+        var bitBucketUsername = req.query['bitBucketUsername'];
+
+        var BintrayUser = getBintrayUser();
+        BintrayUser.findOne({where: {bitBucketUsername: bitBucketUsername}}, function (err, data) {
+            if (err) {
+                res.send('Error occurred while querying for an already existing associated Bintray user: ' + err.message);
+                return;
+            }
+            if (data == null) {
+                res.render('associate-user', {username: null, apiKey: null});
+            } else {
+                res.render('associate-user', {username: data.bintrayUsername, apiKey: data.apiKey})
+            }
+        });
+    });
 
     app.get('/associate-package', addon.authenticate(), function (req, res) {
             res.render('associate-package', {});
