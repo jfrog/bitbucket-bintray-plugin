@@ -79,7 +79,7 @@ module.exports = function (app, addon) {
     app.get('/associate-package', addon.authenticate(), function (req, res) {
             var repoUuid = req.query['repoUuid'];
 
-            console.log('FOUND UUID : ' + repoUuid);
+            console.log('FOUND UUID' + repoUuid);
 
             var BintrayPackage = getBintrayPackage();
             BintrayPackage.findOne({where: {bitBucketRepoUuid: repoUuid}}, function (err, data) {
@@ -135,19 +135,37 @@ module.exports = function (app, addon) {
     );
 
     app.get('/browse-package-versions', addon.authenticate(), function (originalReq, originalRes) {
-            var repoPath = originalReq.query['repoPath'];
             var httpClient = addon.httpClient(originalReq);
 
-            var repoChangeset = repoChangesetUrl(repoPath);
-            httpClient.get(repoChangeset, function (changesetErr, changesetResponse, rawChangesetData) {
-                var rev = latestRev(rawChangesetData);
+            var repoUuid = originalReq.query['repoUuid'];
 
-                var bintrayRepoFile = bintrayRepoFileUrl(originalReq.query.repoPath, rev);
-                httpClient.get(bintrayRepoFile, function (bintrayRepoFileErr, bintrayRepoFileResponse, bintrayRepoFileData) {
+            var BintrayPackage = getBintrayPackage();
+            BintrayPackage.findOne({where: {bitBucketRepoUuid: repoUuid}}, function (err, data) {
+                if (err) {
+                    res.send('Error occurred while querying for an already existing associated Bintray package: ' + err.message);
+                    return;
+                }
+                if ((data == null) || (data.bintrayPackage == null)) {
+                    var repoPath = originalReq.query['repoPath'];
 
-                    var options = bintrayRequestOptions(bintrayRepoFileData);
+                    var repoChangeset = repoChangesetUrl(repoPath);
+                    httpClient.get(repoChangeset, function (changesetErr, changesetResponse, rawChangesetData) {
+                        var rev = latestRev(rawChangesetData);
+
+                        var bintrayRepoFile = bintrayRepoFileUrl(originalReq.query.repoPath, rev);
+                        httpClient.get(bintrayRepoFile, function (bintrayRepoFileErr, bintrayRepoFileResponse, bintrayRepoFileData) {
+
+                            var bintrayRepoFileContent = JSON.parse(bintrayRepoFileData).data;
+                            var bintrayRepoFile = JSON.parse(bintrayRepoFileContent);
+
+                            var options = bintrayRequestOptions(bintrayRepoFile.path);
+                            requestBintrayPackageInfo(options, originalRes);
+                        });
+                    });
+                } else {
+                    var options = bintrayRequestOptions(data.bintrayPackage);
                     requestBintrayPackageInfo(options, originalRes);
-                });
+                }
             });
         }
     );
@@ -184,14 +202,11 @@ module.exports = function (app, addon) {
         return '/api/1.0/repositories/' + repoPath + '/src/' + rev + '/.bintray-package.json'
     }
 
-    function bintrayRequestOptions(bintrayRepoFileData) {
-        var bintrayRepoFileContent = JSON.parse(bintrayRepoFileData).data;
-        var bintrayRepoFile = JSON.parse(bintrayRepoFileContent);
-
+    function bintrayRequestOptions(packagePath) {
         var options = {
             host: 'api.bintray.com',
             port: 443,
-            path: '/packages/' + bintrayRepoFile.path,
+            path: '/packages/' + packagePath,
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'

@@ -39,7 +39,7 @@
     "repoPage": [
       {
         "key": "browse-package-versions",
-        "url": "/browse-package-versions?repoPath={repo_path}",
+        "url": "/browse-package-versions?repoPath={repo_path}&repoUuid={repo_uuid}",
         "name": {
           "value": "Bintray Package"
         },
