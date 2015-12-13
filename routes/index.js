@@ -30,7 +30,11 @@ module.exports = function (app, addon) {
                     return;
                 }
                 if (data == null) {
-                    var newUser = new BintrayUser({bitBucketUsername: bitBucketUsername, bintrayUsername: bintrayUsername, apiKey: apiKey});
+                    var newUser = new BintrayUser({
+                        bitBucketUsername: bitBucketUsername,
+                        bintrayUsername: bintrayUsername,
+                        apiKey: apiKey
+                    });
                     newUser.save(function (err) {
                         if (err) {
                             res.send('Error occurred while creating a new associated Bintray user:' + err.message);
@@ -39,7 +43,8 @@ module.exports = function (app, addon) {
                         }
                     });
                 } else {
-                    data.merge({bintrayUsername: bintrayUsername, apiKey: apiKey});
+                    data.bintrayUsername = bintrayUsername;
+                    data.apiKey = apiKey;
                     data.save(function (err) {
                         if (err) {
                             res.send('Error occurred while updating associated Bintray user:' + err.message);
@@ -72,13 +77,60 @@ module.exports = function (app, addon) {
     });
 
     app.get('/associate-package', addon.authenticate(), function (req, res) {
-            res.render('associate-package', {});
+            var repoUuid = req.query['repoUuid'];
+
+            console.log('FOUND UUID : ' + repoUuid);
+
+            var BintrayPackage = getBintrayPackage();
+            BintrayPackage.findOne({where: {bitBucketRepoUuid: repoUuid}}, function (err, data) {
+                if (err) {
+                    res.send('Error occurred while querying for an already existing associated Bintray package: ' + err.message);
+                    return;
+                }
+                if (data == null) {
+                    res.render('associate-package', {packagePath: null});
+                } else {
+                    res.render('associate-package', {packagePath: data.bintrayPackage})
+                }
+            });
         }
     );
 
     app.post('/associate-package', function (req, res) {
-            console.log("PACKAGE PATH IS : " + req.body.packagePath);
-            res.render('associate-package', {});
+            var repoUuid = req.query['repoUuid'];
+            var packagePath = req.body.packagePath;
+
+            var BintrayPackage = getBintrayPackage();
+            BintrayPackage.findOne({where: {bitBucketRepoUuid: repoUuid}}, function (err, data) {
+                if (err) {
+                    res.send('Error occurred while querying for an already existing associated Bintray package: ' + err.message);
+                    return;
+                }
+                if (data == null) {
+                    var newPackage = new BintrayPackage({
+                        bitBucketRepoUuid: repoUuid,
+                        bintrayPackage: packagePath
+                    });
+                    newPackage.save(function (err) {
+                        if (err) {
+                            res.send('Error occurred while creating a new associated Bintray package:' + err.message);
+                        } else {
+                            console.log('BINTRAY: CREATING NEW ASSOCIATION OF ' + repoUuid + ' WITH ' + packagePath);
+                        }
+                    });
+                } else {
+                    data.bintrayPackage = packagePath;
+                    data.save(function (err) {
+                        if (err) {
+                            res.send('Error occurred while updating associated Bintray package:' + err.message);
+                        } else {
+                            console.log('BINTRAY: UPDATING EXISTING ASSOCIATION OF ' + repoUuid + ' WITH ' + packagePath);
+                        }
+                    });
+                }
+            });
+
+            res.render('associate-package', {packagePath: packagePath});
         }
     );
 

@@ -22,6 +22,11 @@ var BintrayUser = schema.define('BintrayUser', {
   apiKey: String
 });
 
+var BintrayPackage = schema.define('BintrayPackage', {
+  bitBucketRepoUuid: String,
+  bintrayPackage: String
+});
+
 schema.autoupdate();
 
 global.getSchema = function(){
@@ -32,8 +37,8 @@ global.getBintrayUser = function(){
   return BintrayUser;
 };
 
-global.getBintrayPackageAssociation = function(){
-  return BintrayPackageAssociation;
+global.getBintrayPackage = function(){
+  return BintrayPackage;
 };
 
 var hbs = require('express-hbs');

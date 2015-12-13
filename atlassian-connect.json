@@ -21,7 +21,7 @@
     "adminPage": [
       {
         "key": "associate-package",
-        "url": "/associate-package?repoPath={repo_path}",
+        "url": "/associate-package?repoPath={repo_path}&repoUuid={repo_uuid}",
         "name": {
           "value": "Associate Bintray Package"
         },
