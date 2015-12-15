@@ -3,8 +3,8 @@
   "name": "BitBucket Bintray Add-On",
   "description": "A Bintray add-on for Atlassian Bitbucket",
   "vendor": {
-    "name": "Noam Y. Tenne",
-    "url": "www.10ne.org"
+    "name": "JFrog",
+    "url": "www.jfrog.com"
   },
   "baseUrl": "{{localBaseUrl}}",
   "authentication": {
