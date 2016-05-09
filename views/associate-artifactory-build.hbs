@@ -1,0 +1,35 @@
+{{!< layout}}
+<div class="repo-admin">
+<div class="aui-page-panel-content main build">
+    <section class="aui-page-panel-item">
+        <h3>Artifactory Build</h3>
+        <form id="associate-artifactory-build" class="aui" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="action" value="associate-artifactory-build">
+            <div class="field-group">
+                <label for="select-build">Select Build</label>
+                {{#each selected}}
+                    Selected Build is: {{uri}}
+                {{/each}}
+                <select class="js-example-basic-multiple-limit" id="select-build" name="select-build"
+                        style="width: 500px">
+                    {{#each builds}}
+                        <option>{{uri}}</option>
+                    {{/each}}
+                </select>
+                <div class="description">The relative build from Artifactory you'd like to associate</div>
+
+            </div>
+
+            <div class="buttons-container">
+                <div class="aui-buttons">
+                    <button form="associate-artifactory-build" id="save-build" type="submit"
+                            class="aui-button aui-button-primary">Save
+                    </button>
+                </div>
+                <div class="button-spinner spinner"></div>
+            </div>
+        </form>
+    </section>
+</div>
+</div>
+

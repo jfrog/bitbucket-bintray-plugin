@@ -6,11 +6,18 @@
     "start": "node app.js"
   },
   "dependencies": {
+    "atlassian-connect-express-bitbucket": "*",
     "express": "~3.3.4",
     "express-hbs": "*",
-    "static-expiry": ">=0.0.5",
-    "atlassian-connect-express-bitbucket": "*",
+    "fs": "latest",
+    "http": "latest",
+    "https": "latest",
     "jugglingdb": "0.2.x",
-    "jugglingdb-sqlite3": "latest"
+    "jugglingdb-postgres": "^0.1.0",
+    "jugglingdb-sqlite3": "latest",
+    "static-expiry": ">=0.0.5",
+    "url": "latest",
+    "xml2js": "latest",
+    "url-parse": "latest"
   }
 }

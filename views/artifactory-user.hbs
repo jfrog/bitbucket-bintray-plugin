@@ -1,0 +1,36 @@
+{{!< layout}}
+<div class="aui-page-panel-content main">
+    <section class="aui-page-panel-item">
+        <h3>Artifactory User</h3>
+
+        <form id="artifactory-user" class="aui" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="action" value="artifactory-user">
+
+            <div class="field-group">
+                <label for="url">URL</label>
+                <input class="text long-field" type="text"
+                       id="url" name="url" placeholder="http://my-artifactory.com or http://127.0.0.1:8081/" value="{{url}}">
+
+                <div class="description">The url of your Artifactory Server</div>
+                <label for="username">Username</label>
+                <input class="text long-field" type="text"
+                       id="username" name="username" placeholder="admin" value="{{username}}">
+
+                <div class="description">The name of your Artifactory authenticating subject</div>
+                <label for="password">Password</label>
+                <input class="password long-field" type="password"
+                       id="password" name="password" placeholder="secret" value="{{password}}">
+
+                <div class="description">The Password of your Artifactory User</div>
+            </div>
+            <div class="buttons-container">
+                <div class="aui-buttons">
+                    <button form="artifactory-user" id="save-user-credentials" type="submit"
+                            class="aui-button aui-button-primary">Save
+                    </button>
+                </div>
+                <div class="button-spinner spinner"></div>
+            </div>
+        </form>
+    </section>
+</div>

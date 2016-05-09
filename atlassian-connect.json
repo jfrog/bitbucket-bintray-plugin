@@ -1,7 +1,7 @@
 {
-  "key": "bitbucket-bintray-addon",
-  "name": "BitBucket Bintray Add-On",
-  "description": "A Bintray add-on for Atlassian Bitbucket",
+  "key": "bitbucket-jfrog-addon",
+  "name": "BitBucket Jfrog Add-On",
+  "description": "A Jfrog add-on for Atlassian Bitbucket",
   "vendor": {
     "name": "JFrog",
     "url": "www.jfrog.com"
@@ -21,9 +21,25 @@
     "adminPage": [
       {
         "key": "associate-package",
-        "url": "/associate-package?repoPath={repo_path}&repoUuid={repo_uuid}",
+        "url": "/associate-package?repoPath={repo_path}&repoUuid={repo_uuid}&bitBucketUsername={user_username}",
         "name": {
           "value": "Associate Bintray Package"
+        },
+        "location": "org.bitbucket.repository.admin"
+      },
+      {
+        "key": "associate-bamboo-build",
+        "url": "/associate-bamboo-build?repoPath={repo_path}&repoUuid={repo_uuid}&bitBucketUsername={user_username}",
+        "name": {
+          "value": "Associate Bamboo Build"
+        },
+        "location": "org.bitbucket.repository.admin"
+      },
+      {
+        "key": "associate-artifactory-build",
+        "url": "/associate-artifactory-build?repoPath={repo_path}&repoUuid={repo_uuid}&bitBucketUsername={user_username}",
+        "name": {
+          "value": "Associate Artifactory Build"
         },
         "location": "org.bitbucket.repository.admin"
       },
@@ -34,26 +50,43 @@
           "value": "Associate Bintray User"
         },
         "location": "org.bitbucket.account.admin"
+      },
+      {
+        "key": "artifactory-user",
+        "url": "/artifactory-user?repoPath={repo_path}&bitBucketUsername={user_username}",
+        "name": {
+          "value": "Associate Artifactory User"
+        },
+        "location": "org.bitbucket.account.admin"
+      },
+      {
+        "key": "bamboo-user",
+        "url": "/bamboo-user?repoPath={repo_path}&bitBucketUsername={user_username}",
+        "name": {
+          "value": "Associate Bamboo User"
+        },
+        "location": "org.bitbucket.account.admin"
       }
     ],
     "repoPage": [
       {
-        "key": "browse-package-versions",
-        "url": "/browse-package-versions?repoPath={repo_path}&repoUuid={repo_uuid}",
+        "key": "jfrog",
+        "url": "/jfrog?repoPath={repo_path}&repoUuid={repo_uuid}&bitBucketUsername={user_username}",
         "name": {
-          "value": "Bintray Package"
+          "value": "Jfrog"
         },
-        "location": "org.bitbucket.repository.navigation",
-        "conditions": [
-          {
-            "condition": "has_file",
-            "params": {
-              "filename": ".bintray-package.json"
-            }
-          }
-        ]
+        "location": "org.bitbucket.repository.actions",
+        "icon": {
+          "width": 16,
+          "height": 16,
+          "url": "/icon.png"
+        }
       }
-    ]
+    ],
+    "postInstallRedirect": {
+      "key": "redirect",
+      "url": "/welcome.html?repoPath={repo_path}&repoUuid={repo_uuid}&bitBucketUsername={user_username}"
+    }
   },
   "scopes": [
     "account",

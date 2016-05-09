@@ -13,3 +13,19 @@
   padding: 20px 40px 20px 0;
   height: 100px;
 }
+.build{
+  height: 400px;
+}
+
+.spinner{
+  padding: 4px 10px;
+  display: inline-block;
+}
+
+.img{
+  height: 100px;
+}
+
+.glyphicon {
+  font-size: 20px;
+}
