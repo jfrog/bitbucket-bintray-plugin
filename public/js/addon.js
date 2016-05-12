@@ -2,18 +2,9 @@ $(".js-example-basic-multiple-limit").select2({
     maximumSelectionLength: 1
 });
 
-
-
-//alert($("#select-build").val());
-//AJS.$(function() {
-//    AJS.$('#trigger').on('click', function() {
-//        location.reload();
-//    });
-//});
-
-AJS.$(function() {
+AJS.$(function () {
     var spinning = false;
-    AJS.$('#save-user-credentials').on('click', function() {
+    AJS.$('#save-user-credentials').on('click', function () {
         if (!spinning) {
             AJS.$('.button-spinner').spin();
             spinning = true;
@@ -24,9 +15,9 @@ AJS.$(function() {
     });
 });
 
-AJS.$(function() {
+AJS.$(function () {
     var spinning = false;
-    AJS.$('#save-build').on('click', function() {
+    AJS.$('#save-build').on('click', function () {
         if (!spinning) {
             AJS.$('.button-spinner').spin();
             spinning = true;
@@ -38,10 +29,9 @@ AJS.$(function() {
 });
 
 
-
-AJS.$(function() {
+AJS.$(function () {
     var spinning = false;
-    AJS.$('#save-package-path').on('click', function() {
+    AJS.$('#save-package-path').on('click', function () {
         if (!spinning) {
             AJS.$('.button-spinner').spin();
             spinning = true;
