@@ -261,48 +261,57 @@ module.exports = function (app, addon) {
         var builds = [];
         console.log('FOUND UUID' + repoUuid);
         bambooRequestOptions('result', bitBucketUsername, function (options) {
-            var protocol = options.nameProtocol === "http" ? http : https;
-            var reqGet = protocol.get(options, function (resGet) {
-                console.log('STATUS: ' + resGet.statusCode);
-                resGet.setEncoding('utf8');
-                var rawData = [];
-                resGet.on('data', function (chunk) {
-                    rawData.push(chunk);
-                });
-                resGet.on('end', function (resGet) {
-                    var chunk = rawData.join('');
-                    reqGet.write(chunk);
-                    parseString(chunk, function (err, result) {
-                        var build_object_list = result.results.results["0"];
-                        build_list = JSON.parse(JSON.stringify(build_object_list.result));
-                        for (var key in build_list) {
-                            var build = build_list[key];
-                            builds.push({"buildKey": build.plan[0].$.key, "buildName": build.plan[0].$.name});
-                        }
-
-
-                        var BambooBuild = getBambooBuild();
-                        BambooBuild.findOne({where: {bitBucketRepoUuid: repoUuid}}, function (err, data) {
-                            if (err) {
-                                res.send('Error occurred while querying for an already existing associated Bamboo Build: ' + err.message);
-                                return;
+            if (options != null) {
+                var protocol = options.nameProtocol === "http" ? http : https;
+                var reqGet = protocol.get(options, function (resGet) {
+                    console.log('STATUS: ' + resGet.statusCode);
+                    resGet.setEncoding('utf8');
+                    var rawData = [];
+                    resGet.on('data', function (chunk) {
+                        rawData.push(chunk);
+                    });
+                    resGet.on('end', function (resGet) {
+                        var chunk = rawData.join('');
+                        reqGet.write(chunk);
+                        parseString(chunk, function (err, result) {
+                            var build_object_list = result.results.results["0"];
+                            build_list = JSON.parse(JSON.stringify(build_object_list.result));
+                            for (var key in build_list) {
+                                var build = build_list[key];
+                                builds.push({"buildKey": build.plan[0].$.key, "buildName": build.plan[0].$.name});
                             }
-                            if (data == null) {
-                                res.render('associate-bamboo-build', {builds: builds});
 
-                            } else {
-                                var selected = [{"buildName": data.bambooBuildName, "buildKey": data.bambooBuildKey}];
-                                res.render('associate-bamboo-build', {builds: builds, selected: selected});
-                            }
+
+                            var BambooBuild = getBambooBuild();
+                            BambooBuild.findOne({where: {bitBucketRepoUuid: repoUuid}}, function (err, data) {
+                                if (err) {
+                                    res.send('Error occurred while querying for an already existing associated Bamboo Build: ' + err.message);
+                                    return;
+                                }
+                                if (data == null) {
+                                    res.render('associate-bamboo-build', {builds: builds});
+
+                                } else {
+                                    var selected = [{
+                                        "buildName": data.bambooBuildName,
+                                        "buildKey": data.bambooBuildKey
+                                    }];
+                                    res.render('associate-bamboo-build', {builds: builds, selected: selected});
+                                }
+                            });
                         });
                     });
                 });
-            });
-            reqGet.on('error', function (e) {
-                console.log('problem with request: ' + e.message);
-            });
-            reqGet.end();
+                reqGet.on('error', function (e) {
+                    console.log('problem with request: ' + e.message);
+                });
+                reqGet.end();
+            } else {
+                var message = 'configured Bamboo user not found! ';
+                res.render('error', {message: message});
+            }
         });
+
     });
 
     app.post('/associate-bamboo-build', function (req, res) {
@@ -350,42 +359,47 @@ module.exports = function (app, addon) {
         var builds;
         console.log('FOUND UUID' + repoUuid);
         artifactoryRequestOptions('build', bitBucketUsername, function (options) {
-            var protocol = options.nameProtocol === "http" ? http : https;
-            var reqGet = protocol.request(options, function (resGet) {
-                console.log('STATUS: ' + resGet.statusCode);
-                resGet.setEncoding('utf8');
-                var rawData = [];
-                resGet.on('data', function (chunk) {
-                    rawData.push(chunk);
-                });
-                resGet.on('end', function (resGet) {
-                    var chunk = rawData.join('');
-                    reqGet.write(chunk);
-                    if (chunk.indexOf("<") > -1) {
-                        var list = " ";
-                    } else {
-                        var list = JSON.parse(chunk);
-                    }
-                    builds = list["builds"];
-                    var ArtifactoryBuild = getArtifactoryBuild();
-                    ArtifactoryBuild.findOne({where: {bitBucketRepoUuid: repoUuid}}, function (err, data) {
-                        if (err) {
-                            res.send('Error occurred while querying for an already existing associated Artifactory Build: ' + err.message);
-                            return;
-                        }
-                        if (data == null) {
-                            res.render('associate-artifactory-build', {builds: builds})
+            if (options != null) {
+                var protocol = options.nameProtocol === "http" ? http : https;
+                var reqGet = protocol.request(options, function (resGet) {
+                    console.log('STATUS: ' + resGet.statusCode);
+                    resGet.setEncoding('utf8');
+                    var rawData = [];
+                    resGet.on('data', function (chunk) {
+                        rawData.push(chunk);
+                    });
+                    resGet.on('end', function (resGet) {
+                        var chunk = rawData.join('');
+                        reqGet.write(chunk);
+                        if (chunk.indexOf("<") > -1) {
+                            var list = " ";
                         } else {
-                            var selected = [{'uri': data.artifactoryBuild}];
-                            res.render('associate-artifactory-build', {builds: builds, selected: selected})
+                            var list = JSON.parse(chunk);
                         }
+                        builds = list["builds"];
+                        var ArtifactoryBuild = getArtifactoryBuild();
+                        ArtifactoryBuild.findOne({where: {bitBucketRepoUuid: repoUuid}}, function (err, data) {
+                            if (err) {
+                                res.send('Error occurred while querying for an already existing associated Artifactory Build: ' + err.message);
+                                return;
+                            }
+                            if (data == null) {
+                                res.render('associate-artifactory-build', {builds: builds})
+                            } else {
+                                var selected = [{'uri': data.artifactoryBuild}];
+                                res.render('associate-artifactory-build', {builds: builds, selected: selected})
+                            }
+                        });
                     });
                 });
-            });
-            reqGet.on('error', function (e) {
-                console.log('problem with request: ' + e.message);
-            });
-            reqGet.end();
+                reqGet.on('error', function (e) {
+                    console.log('problem with request: ' + e.message);
+                });
+                reqGet.end();
+            } else {
+                var message = 'configured Artifactory user not found! ';
+                res.render('error', {message: message});
+            }
         });
     });
 
@@ -537,161 +551,190 @@ module.exports = function (app, addon) {
             }
             if (data == null) {
                 var message = 'Bamboo build is not selected. Please Select Bamboo build';
-                res.render('error',{message: message});
+                res.render('error', {message: message});
             } else {
                 bambooRequestOptions('result/' + data.bambooBuildKey, bitBucketUsername, function (options) {
-                    var protocol = options.nameProtocol === "http" ? http : https;
-                    var reqBambooGet = protocol.request(options, function (resBambooGet) {
-                        console.log('STATUS: ' + resBambooGet.statusCode);
-                        resBambooGet.setEncoding('utf8');
-                        var rawData = [];
-                        resBambooGet.on('data', function (chunk) {
-                            rawData.push(chunk);
-                        });
-                        resBambooGet.on('end', function (resBambooGet) {
-                            var chunk = rawData.join('');
-                            reqBambooGet.write(chunk);
-                            parseString(chunk, function (err, result) {
-                                buildInfo = result.results.results[0].result;
-                                var ArtifactoryBuild = getArtifactoryBuild();
-                                ArtifactoryBuild.findOne({where: {bitBucketRepoUuid: repoUuid}}, function (err, data) {
-                                    if (err) {
-                                        res.send('Error occurred while querying for an already existing associated Artifactory Build: ' + err.message);
-                                        return;
-                                    }
-                                    if (data == null) {
-                                        console.log("Artifactory Build is not selected");
-                                    } else {
-                                        var list_object = [];
-                                        for (var key in buildInfo) {
-                                            (function (key) {
-                                                list_object.push(key);
-                                                var number = buildInfo[key].buildNumber[0];
-                                                buildInfo[key].bitBucketUsername = bitBucketUsername;
-                                                buildInfo[key].buildLink = buildInfo[key].link["0"].$.href.replace("rest/api/latest/result", "browse");
-                                                artifactoryRequestOptions('build' + data.artifactoryBuild + "/" + number, bitBucketUsername, function (artifactoryOptions) {
-                                                    var artiProtocol = artifactoryOptions.nameProtocol === "http" ? http : https;
-                                                    var reqGet = artiProtocol.request(artifactoryOptions, function (resGet) {
-                                                        console.log('STATUS: ' + resGet.statusCode);
-                                                        resGet.setEncoding('utf8');
-                                                        var rawDataArti = [];
-                                                        resGet.on('data', function (chunk) {
-                                                            rawDataArti.push(chunk);
-                                                        });
-                                                        resGet.on('end', function (resGet) {
-                                                            var chunkArti = rawDataArti.join('');
-                                                            reqGet.write(chunkArti);
-                                                            if (chunkArti.indexOf("<") > -1) {
-                                                                var artBuildInfo = " ";
-                                                            } else {
-                                                                var artBuildInfo = JSON.parse(chunkArti);
-                                                            }
-                                                            if (artBuildInfo.buildInfo != undefined && artBuildInfo.buildInfo.name != undefined) {
-                                                                buildInfo[key].artName = artBuildInfo.buildInfo.name;
-                                                            } else {
-                                                                buildInfo[key].artName = " ";
-                                                            }
-                                                            if (artBuildInfo.buildInfo != undefined && artBuildInfo.buildInfo.principal != undefined) {
-                                                                buildInfo[key].principal = artBuildInfo.buildInfo.principal;
-                                                            } else {
-                                                                buildInfo[key].principal = " ";
-                                                            }
-                                                            if (artBuildInfo.buildInfo != undefined && artBuildInfo.buildInfo.buildAgent != undefined) {
-                                                                buildInfo[key].buildAgent = artBuildInfo.buildInfo.buildAgent;
-                                                            } else {
-                                                                buildInfo[key].buildAgent = " ";
-                                                            }
-                                                            if (artBuildInfo.buildInfo != undefined && artBuildInfo.buildInfo.number != undefined) {
-                                                                buildInfo[key].artBuildNumber = artBuildInfo.buildInfo.number;
-                                                            } else {
-                                                                buildInfo[key].artBuildNumber = " ";
-                                                            }
-                                                            if (artBuildInfo.uri != undefined && artBuildInfo.uri != undefined) {
-                                                                buildInfo[key].uri = artBuildInfo.uri.replace("api/build", "webapp/#/builds");
-                                                            } else {
-                                                                buildInfo[key].uri = " ";
-                                                            }
-                                                            if (artBuildInfo.buildInfo != undefined && artBuildInfo.buildInfo.started != undefined) {
-                                                                buildInfo[key].promotionTime = artBuildInfo.buildInfo.started;
-                                                            } else {
-                                                                buildInfo[key].promotionTime = " ";
-                                                            }
-                                                            if (artBuildInfo.buildInfo != undefined && artBuildInfo.buildInfo.statuses != undefined) {
-                                                                buildInfo[key].statuses = artBuildInfo.buildInfo.statuses;
-                                                            } else {
-                                                                buildInfo[key].statuses = [];
-                                                            }
-                                                            var BintrayPackage = getBintrayPackage();
-                                                            BintrayPackage.findOne({where: {bitBucketRepoUuid: repoUuid}}, function (err, data) {
-                                                                if (err) {
-                                                                    res.send('Error occurred while querying for an already existing associated Bintray package: ' + err.message);
-                                                                    return;
-                                                                }
-                                                                if ((data == null) || (data.bintrayPackage == null)) {
-                                                                    console.log("Package not found!");
-                                                                } else {
-                                                                    var post_data = '[{"buildNumber":["' + buildInfo[key].artBuildNumber + '"]},{"buildName":["' + buildInfo[key].artName.replace(/ /g, "%20") + '"]}]';
-                                                                    var path = 'search/attributes/' + data.bintrayPackage + 'versions';
-                                                                    bintrayRequestOptionsPost(path, bitBucketUsername, post_data, function (options) {
-                                                                        var post_req = https.request(options, function (resPost) {
-                                                                            resPost.setEncoding('utf8');
-                                                                            var output = [];
-                                                                            resPost.on('data', function (chunk) {
-                                                                                output.push(chunk);
-                                                                            });
-                                                                            resPost.on('end', function (resPost) {
-                                                                                var chunk = output.join('');
-                                                                                if (chunk != "[]") {
-                                                                                    var vesion = JSON.parse(chunk);
-                                                                                    buildInfo[key].version = vesion[0].name;
-                                                                                    buildInfo[key].repo = vesion[0].repo;
-                                                                                    buildInfo[key].package = vesion[0].package;
-                                                                                    buildInfo[key].owner = vesion[0].owner;
-                                                                                } else {
-                                                                                    buildInfo[key].version = " ";
-                                                                                    buildInfo[key].repo = " ";
-                                                                                    buildInfo[key].package = " ";
-                                                                                    buildInfo[key].owner = " ";
-                                                                                }
-                                                                                list_object.splice(list_object.indexOf(key), 1);
-                                                                                if (list_object.length == 0) {
-                                                                                    res.render('jfrog', {
-                                                                                        bambooBuildInfo: buildInfo
-                                                                                    });
-                                                                                }
-                                                                            });
-                                                                        });
-                                                                        post_req.write(post_data);
-                                                                        post_req.on('error', function (err) {
-                                                                            console.log('error: ' + err.message);
-                                                                        });
-                                                                        post_req.end();
-                                                                    });
-
-                                                                }
-                                                            });
-                                                        });
-                                                    });
-                                                    reqGet.on('error', function (e) {
-                                                        console.log('problem with request: ' + e.message);
-                                                    });
-                                                    reqGet.end();
-                                                });
-
-
-                                            })(key);
+                    if (options != null) {
+                        var protocol = options.nameProtocol === "http" ? http : https;
+                        var reqBambooGet = protocol.request(options, function (resBambooGet) {
+                            console.log('STATUS: ' + resBambooGet.statusCode);
+                            resBambooGet.setEncoding('utf8');
+                            var rawData = [];
+                            resBambooGet.on('data', function (chunk) {
+                                rawData.push(chunk);
+                            });
+                            resBambooGet.on('end', function (resBambooGet) {
+                                var chunk = rawData.join('');
+                                reqBambooGet.write(chunk);
+                                parseString(chunk, function (err, result) {
+                                    buildInfo = result.results.results[0].result;
+                                    var ArtifactoryBuild = getArtifactoryBuild();
+                                    ArtifactoryBuild.findOne({where: {bitBucketRepoUuid: repoUuid}}, function (err, data) {
+                                        if (err) {
+                                            res.send('Error occurred while querying for an already existing associated Artifactory Build: ' + err.message);
+                                            return;
                                         }
-                                    }
+                                        if (data == null) {
+                                            console.log("Artifactory Build is not selected");
+                                            res.render('jfrog', {
+                                                bambooBuildInfo: buildInfo
+                                            });
+                                        } else {
+                                            var list_object = [];
+                                            for (var key in buildInfo) {
+                                                (function (key) {
+                                                    list_object.push(key);
+                                                    var number = buildInfo[key].buildNumber[0];
+                                                    buildInfo[key].bitBucketUsername = bitBucketUsername;
+                                                    buildInfo[key].buildLink = buildInfo[key].link["0"].$.href.replace("rest/api/latest/result", "browse");
+                                                    artifactoryRequestOptions('build' + data.artifactoryBuild + "/" + number, bitBucketUsername, function (artifactoryOptions) {
+                                                        if (artifactoryOptions != null) {
+                                                            var artiProtocol = artifactoryOptions.nameProtocol === "http" ? http : https;
+                                                            var reqGet = artiProtocol.request(artifactoryOptions, function (resGet) {
+                                                                console.log('STATUS: ' + resGet.statusCode);
+                                                                resGet.setEncoding('utf8');
+                                                                var rawDataArti = [];
+                                                                resGet.on('data', function (chunk) {
+                                                                    rawDataArti.push(chunk);
+                                                                });
+                                                                resGet.on('end', function (resGet) {
+                                                                    var chunkArti = rawDataArti.join('');
+                                                                    reqGet.write(chunkArti);
+                                                                    if (chunkArti.indexOf("<") > -1) {
+                                                                        var artBuildInfo = " ";
+                                                                    } else {
+                                                                        var artBuildInfo = JSON.parse(chunkArti);
+                                                                    }
+                                                                    if (artBuildInfo.buildInfo != undefined && artBuildInfo.buildInfo.name != undefined) {
+                                                                        buildInfo[key].artName = artBuildInfo.buildInfo.name;
+                                                                    } else {
+                                                                        buildInfo[key].artName = " ";
+                                                                    }
+                                                                    if (artBuildInfo.buildInfo != undefined && artBuildInfo.buildInfo.principal != undefined) {
+                                                                        buildInfo[key].principal = artBuildInfo.buildInfo.principal;
+                                                                    } else {
+                                                                        buildInfo[key].principal = " ";
+                                                                    }
+                                                                    if (artBuildInfo.buildInfo != undefined && artBuildInfo.buildInfo.buildAgent != undefined) {
+                                                                        buildInfo[key].buildAgent = artBuildInfo.buildInfo.buildAgent;
+                                                                    } else {
+                                                                        buildInfo[key].buildAgent = " ";
+                                                                    }
+                                                                    if (artBuildInfo.buildInfo != undefined && artBuildInfo.buildInfo.number != undefined) {
+                                                                        buildInfo[key].artBuildNumber = artBuildInfo.buildInfo.number;
+                                                                    } else {
+                                                                        buildInfo[key].artBuildNumber = " ";
+                                                                    }
+                                                                    if (artBuildInfo.uri != undefined && artBuildInfo.uri != undefined) {
+                                                                        buildInfo[key].uri = artBuildInfo.uri.replace("api/build", "webapp/#/builds");
+                                                                    } else {
+                                                                        buildInfo[key].uri = " ";
+                                                                    }
+                                                                    if (artBuildInfo.buildInfo != undefined && artBuildInfo.buildInfo.started != undefined) {
+                                                                        buildInfo[key].promotionTime = artBuildInfo.buildInfo.started;
+                                                                    } else {
+                                                                        buildInfo[key].promotionTime = " ";
+                                                                    }
+                                                                    if (artBuildInfo.buildInfo != undefined && artBuildInfo.buildInfo.statuses != undefined) {
+                                                                        buildInfo[key].statuses = artBuildInfo.buildInfo.statuses;
+                                                                    } else {
+                                                                        buildInfo[key].statuses = [];
+                                                                    }
+                                                                    var BintrayPackage = getBintrayPackage();
+                                                                    BintrayPackage.findOne({where: {bitBucketRepoUuid: repoUuid}}, function (err, data) {
+                                                                        if (err) {
+                                                                            res.send('Error occurred while querying for an already existing associated Bintray package: ' + err.message);
+                                                                            return;
+                                                                        }
+                                                                        if ((data == null) || (data.bintrayPackage == null)) {
+                                                                            console.log("Package not found!");
+                                                                            list_object.splice(list_object.indexOf(key), 1);
+                                                                            if (list_object.length == 0) {
+                                                                                res.render('jfrog', {
+                                                                                    bambooBuildInfo: buildInfo
+                                                                                });
+                                                                            }
+                                                                        } else {
+                                                                            var post_data = '[{"buildNumber":["' + buildInfo[key].artBuildNumber + '"]},{"buildName":["' + buildInfo[key].artName.replace(/ /g, "%20") + '"]}]';
+                                                                            var path = 'search/attributes/' + data.bintrayPackage + 'versions';
+                                                                            bintrayRequestOptionsPost(path, bitBucketUsername, post_data, function (options) {
+                                                                                if (options != null) {
+                                                                                    var post_req = https.request(options, function (resPost) {
+                                                                                        resPost.setEncoding('utf8');
+                                                                                        var output = [];
+                                                                                        resPost.on('data', function (chunk) {
+                                                                                            output.push(chunk);
+                                                                                        });
+                                                                                        resPost.on('end', function (resPost) {
+                                                                                            var chunk = output.join('');
+                                                                                            if (chunk != "[]" && chunk != "") {
+                                                                                                var vesion = JSON.parse(chunk);
+                                                                                                buildInfo[key].version = vesion[0].name;
+                                                                                                buildInfo[key].repo = vesion[0].repo;
+                                                                                                buildInfo[key].package = vesion[0].package;
+                                                                                                buildInfo[key].owner = vesion[0].owner;
+                                                                                            } else {
+                                                                                                buildInfo[key].version = " ";
+                                                                                                buildInfo[key].repo = " ";
+                                                                                                buildInfo[key].package = " ";
+                                                                                                buildInfo[key].owner = " ";
+                                                                                            }
+                                                                                            list_object.splice(list_object.indexOf(key), 1);
+                                                                                            if (list_object.length == 0) {
+                                                                                                res.render('jfrog', {
+                                                                                                    bambooBuildInfo: buildInfo
+                                                                                                });
+                                                                                            }
+                                                                                        });
+                                                                                    });
+                                                                                    post_req.write(post_data);
+                                                                                    post_req.on('error', function (err) {
+                                                                                        console.log('error: ' + err.message);
+                                                                                    });
+                                                                                    post_req.end();
+                                                                                }
+                                                                                else {
+                                                                                    list_object.splice(list_object.indexOf(key), 1);
+                                                                                    if (list_object.length == 0) {
+                                                                                        res.render('jfrog', {
+                                                                                            bambooBuildInfo: buildInfo
+                                                                                        });
+                                                                                    }
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                    });
+                                                                });
+                                                            });
+                                                            reqGet.on('error', function (e) {
+                                                                console.log('problem with request: ' + e.message);
+                                                            });
+                                                            reqGet.end();
+                                                        } else {
+                                                            var message = 'configured Artifactory user not found!';
+                                                            list_object.splice(list_object.indexOf(key), 1);
+                                                            if (list_object.length == 0) {
+                                                                res.render('jfrog', {
+                                                                    bambooBuildInfo: buildInfo
+                                                                });
+                                                            }
+                                                        }
+                                                    });
+                                                })(key);
+                                            }
+                                        }
+                                    });
                                 });
                             });
                         });
-                    });
-
-                    reqBambooGet.on('error', function (e) {
-                        console.log('problem with request: ' + e.message);
-                    });
-                    reqBambooGet.end();
-
+                        reqBambooGet.on('error', function (e) {
+                            console.log('problem with request: ' + e.message);
+                        });
+                        reqBambooGet.end();
+                    } else {
+                        var message = 'configured Bamboo user not found! ';
+                        res.render('error', {message: message});
+                    }
                 });
 
 
@@ -757,9 +800,7 @@ module.exports = function (app, addon) {
             if (err) {
                 console.log('Error occurred while querying for an already existing associated Bamboo user: ' + err.message);
             }
-            if (data == null) {
-                console.log(" not found");
-            } else {
+            if (data != null && data.bintrayUsername != null && data.bintrayUsername != "" && data.apiKey != null && data.apiKey != "") {
                 options = {
                     host: 'api.bintray.com',
                     port: 443,
@@ -770,6 +811,8 @@ module.exports = function (app, addon) {
                         'Content-Length': Buffer.byteLength(post_data)
                     }, auth: data.bintrayUsername + ':' + data.apiKey
                 };
+            } else {
+                console.log("Bintray User not found");
             }
             callback(options);
         });
@@ -782,9 +825,7 @@ module.exports = function (app, addon) {
             if (err) {
                 console.log('Error occurred while querying for an already existing associated Bamboo user: ' + err.message);
             }
-            if (data == null) {
-                console.log(" Bamboo user not found!");
-            } else {
+            if (data != null && data.url != null && data.url != "" && data.bambooUsername != null && data.bambooUsername != "" && data.password != null && data.password != "") {
                 var host_url = url.parse(data.url);
                 options = {
                     host: host_url.hostname,
@@ -797,6 +838,8 @@ module.exports = function (app, addon) {
                     },
                     auth: data.bambooUsername + ':' + data.password
                 };
+            } else {
+                console.log("Bamboo user not found!");
             }
             callback(options);
         });
@@ -809,9 +852,7 @@ module.exports = function (app, addon) {
             if (err) {
                 console.log('Error occurred while querying for an already existing associated Artifactory Build: ' + err.message);
             }
-            if (data == null) {
-                console.log(" not found");
-            } else {
+            if (data != null && data.url != null && data.url != "" && data.artifactoryUsername != null && data.artifactoryUsername != "" && data.password != null && data.password != "") {
                 var host_url = url.parse(data.url);
                 options = {
                     host: host_url.hostname,
@@ -824,7 +865,8 @@ module.exports = function (app, addon) {
                     },
                     auth: data.artifactoryUsername + ':' + data.password
                 };
-
+            } else {
+                console.log("Artifactory User not found");
             }
             callback(options);
         });
