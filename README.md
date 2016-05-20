@@ -12,7 +12,7 @@ Congratulations! You've successfully created an Atlassian Connect Add-on using t
   </head>
   <body>
     <a class="aui-button aui-button-primary"
-          href="https://bitbucket.org/site/addons/authorize?descriptor_uri=https://bitbucket-connect.jfrog.com&redirect_uri=https://bitbucket-connect.jfrog.com">
+          href="https://bitbucket.org/site/addons/authorize?descriptor_uri=https://bitbucket-connect.jfrog.com/&redirect_uri=https://bitbucket-connect.jfrog.com/welcome.html">
        <span class="aui-icon aui-icon-small aui-iconfont-bitbucket"></span>
        Install addon to Bitbucket
     </a>
