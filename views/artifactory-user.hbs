@@ -9,7 +9,7 @@
             <div class="field-group">
                 <label for="url">URL</label>
                 <input class="text long-field" type="text"
-                       id="url" name="url" placeholder="http://my-artifactory.com or http://127.0.0.1:8081/" value="{{url}}">
+                       id="url" name="url" placeholder="http://my-artifactory.com/artifactory or http://127.0.0.1:8081/artifactory" value="{{url}}">
 
                 <div class="description">The url of your Artifactory Server</div>
                 <label for="username">Username</label>
@@ -24,6 +24,11 @@
                 <div class="description">The Password of your Artifactory User</div>
             </div>
             <div class="buttons-container">
+                <div class="aui-buttons">
+                    <button
+                            class="aui-button aui-button-primary" id="test-artifactory-connection">Test Connection
+                    </button>
+                </div>
                 <div class="aui-buttons">
                     <button form="artifactory-user" id="save-user-credentials" type="submit"
                             class="aui-button aui-button-primary">Save
