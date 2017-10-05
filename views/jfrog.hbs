@@ -5,7 +5,7 @@
         <th colspan="3" width="30%">
                 <img style="height: 80px"
                      src="https://raw.githubusercontent.com/jainishshah17/Images/master/Bamboo.png">
-                <a id="trigger" href="../../triggerBuild/{{bambooBuildInfo.1.plan.0.$.key}}/{{bambooBuildInfo.1.bitBucketUsername}}"
+                <a id="trigger" href="../../triggerBuild/{{bambooBuildInfo.1.plan.0.$.key}}?jwt={{token}}"
            style="float: right;"><span class="glyphicon glyphicon-play-circle" aria-hidden="true"
                                                title="Trigger Bamboo Build"></span></a>
         </th>
@@ -52,7 +52,7 @@
             </td>
             <td>
                 <a href="{{uri}}" target="_blank"> Build Info</a>
-                <a href="../../downloadArchive/{{bitBucketUsername}}/{{artName}}/{{artBuildNumber}}">
+                <a href="../../downloadArchive/{{artName}}/{{artBuildNumber}}?jwt={{../token}}">
                     <span class="glyphicon glyphicon-cloud-download"
                           title="Download Build Artifacts Archive"></span>
                 </a><br>

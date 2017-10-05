@@ -3,8 +3,10 @@
 <div class="aui-page-panel-content main build">
     <section class="aui-page-panel-item">
         <h3>Artifactory Build</h3>
-        <form id="associate-artifactory-build" class="aui" method="post" enctype="multipart/form-data">
+        <form id="associate-artifactory-build" class="aui" method="post" action="associate-artifactory-build?jwt={{token}}" enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="action" value="associate-artifactory-build">
+            <input type="hidden" name="repoUuid" value="{{repoUuid}}">
+
             <div class="field-group">
                 <label for="select-build">Select Build</label>
                 {{#each selected}}
@@ -32,4 +34,3 @@
     </section>
 </div>
 </div>
-

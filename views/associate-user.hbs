@@ -3,7 +3,7 @@
     <section class="aui-page-panel-item">
         <h3>Bintray User</h3>
 
-        <form id="associate-user" class="aui" method="post" enctype="multipart/form-data">
+        <form id="associate-user" class="aui" method="post" action="associate-user?jwt={{token}}" enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="action" value="associate-user">
 
             <div class="field-group">

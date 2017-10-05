@@ -2,8 +2,10 @@
 <div class="aui-page-panel-content main build">
     <section class="aui-page-panel-item">
         <h3>Bamboo Build</h3>
-        <form id="associate-bamboo-build" class="aui" method="post" enctype="multipart/form-data">
+        <form id="associate-bamboo-build" class="aui" method="post" action="associate-bamboo-build?jwt={{token}}" enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="action" value="associate-bamboo-build">
+            <input type="hidden" name="repoUuid" value="{{repoUuid}}">
+
             <div class="field-group">
                 <label for="select-build">Select Build</label>
                 {{#each selected}}
