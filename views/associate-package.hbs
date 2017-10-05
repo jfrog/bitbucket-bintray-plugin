@@ -2,8 +2,10 @@
 <div class="aui-page-panel-content main">
     <section class="aui-page-panel-item">
         <h3>Bintray Package</h3>
-        <form id="associate-package" class="aui" method="post" enctype="multipart/form-data">
+        <form id="associate-package" class="aui" method="post" action="associate-package?jwt={{token}}" enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="action" value="associate-package">
+            <input type="hidden" name="repoUuid" value="{{repoUuid}}">
+            
             <div class="field-group">
                 <label for="packagePath">Package Path</label>
                 <input class="text long-field" type="text"

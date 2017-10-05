@@ -4,9 +4,11 @@ var fs = require('fs');
 var parseString = require('xml2js').parseString;
 var url = require('url');
 var jwt = require('atlassian-jwt');
+var ac = require('atlassian-connect-express')
 
 
 module.exports = function (app, addon) {
+
     // Root route. This route will serve the `atlassian-connect.json` unless the
     // documentation url inside `atlassian-connect.json` is set
     app.get('/', function (req, res) {
@@ -23,8 +25,8 @@ module.exports = function (app, addon) {
         });
     });
 
-    app.post('/associate-user', addon.checkValidToken(), function (req, res) {
-            var bitBucketUsername = req.query['bitBucketUsername'];
+    app.post('/associate-user', addon.checkValidToken(), fetchCurrentUsername(), function (req, res) {
+            var bitBucketUsername = req.bitBucketUsername;
             var bintrayUsername = req.body.username;
             var apiKey = req.body.apiKey;
 
@@ -63,8 +65,8 @@ module.exports = function (app, addon) {
         }
     );
 
-    app.get('/associate-user', addon.authenticate(), function (req, res) {
-        var bitBucketUsername = req.query['bitBucketUsername'];
+    app.get('/associate-user', addon.authenticate(), fetchCurrentUsername(), function (req, res) {
+        var bitBucketUsername = req.bitBucketUsername
         var BintrayUser = getBintrayUser();
         BintrayUser.findOne({where: {bitBucketUsername: bitBucketUsername}}, function (err, data) {
             if (err) {
@@ -79,50 +81,11 @@ module.exports = function (app, addon) {
         });
     });
 
-    app.post('/artifactory-user', addon.checkValidToken(), function (req, res) {
-            var bitBucketUsername = req.query['bitBucketUsername'];
-            var url = req.body.url;
-            var artifactoryUsername = req.body.username;
-            var password = req.body.password;
-            var ArtifactoryUser = getArtifactoryUser();
-            ArtifactoryUser.findOne({where: {bitBucketUsername: bitBucketUsername}}, function (err, data) {
-                if (err) {
-                    res.send('Error occurred while querying for an already existing associated Artifactory user: ' + err.message);
-                    return;
-                }
-                if (data == null) {
-                    var newUser = new ArtifactoryUser({
-                        bitBucketUsername: bitBucketUsername,
-                        url: url,
-                        artifactoryUsername: artifactoryUsername,
-                        password: password
-                    });
-                    newUser.save(function (err) {
-                        if (err) {
-                            res.send('Error occurred while creating a new associated Artifactory user:' + err.message);
-                        } else {
-                            console.log('Artifactory: CREATING NEW ASSOCIATION OF ' + bitBucketUsername + ' WITH ' + artifactoryUsername);
-                        }
-                    });
-                } else {
-                    data.url = url;
-                    data.artifactoryUsername = artifactoryUsername;
-                    data.password = password;
-                    data.save(function (err) {
-                        if (err) {
-                            res.send('Error occurred while updating associated Artifactory user:' + err.message);
-                        } else {
-                            console.log('Artifactory: UPDATING EXISTING ASSOCIATION OF ' + bitBucketUsername + ' WITH ' + artifactoryUsername);
-                        }
-                    });
-                }
-            });
-            res.render('artifactory-user', {username: artifactoryUsername, password: password, url: url});
-        }
-    );
-    app.get('/artifactory-user', addon.authenticate(), function (req, res) {
-        var bitBucketUsername = req.query['bitBucketUsername'];
-
+    app.post('/artifactory-user', addon.checkValidToken(), fetchCurrentUsername(), function (req, res) {
+        var bitBucketUsername = req.bitBucketUsername;
+        var url = req.body.url;
+        var artifactoryUsername = req.body.username;
+        var password = req.body.password;
         var ArtifactoryUser = getArtifactoryUser();
         ArtifactoryUser.findOne({where: {bitBucketUsername: bitBucketUsername}}, function (err, data) {
             if (err) {
@@ -130,9 +93,48 @@ module.exports = function (app, addon) {
                 return;
             }
             if (data == null) {
-                res.render('artifactory-user', {url: null, username: null, password: null});
+                var newUser = new ArtifactoryUser({
+                    bitBucketUsername: bitBucketUsername,
+                    url: url,
+                    artifactoryUsername: artifactoryUsername,
+                    password: password
+                });
+                newUser.save(function (err) {
+                    if (err) {
+                        res.send('Error occurred while creating a new associated Artifactory user:' + err.message);
+                    } else {
+                        console.log('Artifactory: CREATING NEW ASSOCIATION OF ' + bitBucketUsername + ' WITH ' + artifactoryUsername);
+                    }
+                });
+            } else {
+                data.url = url;
+                data.artifactoryUsername = artifactoryUsername;
+                data.password = password;
+                data.save(function (err) {
+                    if (err) {
+                        res.send('Error occurred while updating associated Artifactory user:' + err.message);
+                    } else {
+                        console.log('Artifactory: UPDATING EXISTING ASSOCIATION OF ' + bitBucketUsername + ' WITH ' + artifactoryUsername);
+                    }
+                });
+            }
+        });
+        res.render('artifactory-user', {username: artifactoryUsername, password: password, url: url});
+        }
+    );
+    app.get('/artifactory-user', addon.authenticate(), fetchCurrentUsername(), function (req, res) {
+        var bitBucketUsername = req.bitBucketUsername;
+        var ArtifactoryUser = getArtifactoryUser();
+        ArtifactoryUser.findOne({where: {bitBucketUsername: bitBucketUsername}}, function (err, data) {
+            if (err) {
+                res.send('Error occurred while querying for an already existing associated Artifactory user: ' + err.message);
+                return;
+            }
+            if (data == null) {
+                res.render('artifactory-user', {bitBucketUsername: bitBucketUsername, url: null, username: null, password: null});
             } else {
                 res.render('artifactory-user', {
+                    bitBucketUsername: bitBucketUsername,
                     url: data.url,
                     username: data.artifactoryUsername,
                     password: data.password
@@ -141,8 +143,8 @@ module.exports = function (app, addon) {
         });
     });
 
-    app.post('/bamboo-user', addon.checkValidToken(), function (req, res) {
-            var bitBucketUsername = req.query['bitBucketUsername'];
+    app.post('/bamboo-user', addon.checkValidToken(), fetchCurrentUsername(), function (req, res) {
+            var bitBucketUsername = req.bitBucketUsername;
             var url = req.body.url;
             var bambooUsername = req.body.username;
             var password = req.body.password;
@@ -183,8 +185,8 @@ module.exports = function (app, addon) {
         }
     );
 
-    app.get('/bamboo-user', addon.authenticate(), function (req, res) {
-        var bitBucketUsername = req.query['bitBucketUsername'];
+    app.get('/bamboo-user', addon.authenticate(), fetchCurrentUsername(), function (req, res) {
+        var bitBucketUsername = req.bitBucketUsername;
 
         var BambooUser = getBambooUser();
         BambooUser.findOne({where: {bitBucketUsername: bitBucketUsername}}, function (err, data) {
@@ -200,7 +202,7 @@ module.exports = function (app, addon) {
         });
     });
 
-    app.get('/associate-package', addon.authenticate(), function (req, res) {
+    app.get('/associate-package', addon.authenticate(), fetchCurrentUsername(), function (req, res) {
             var repoUuid = req.query['repoUuid'];
             console.log('FOUND UUID' + repoUuid);
             var BintrayPackage = getBintrayPackage();
@@ -210,16 +212,16 @@ module.exports = function (app, addon) {
                     return;
                 }
                 if (data == null) {
-                    res.render('associate-package', {packagePath: null});
+                    res.render('associate-package', {repoUuid: repoUuid, packagePath: null});
                 } else {
-                    res.render('associate-package', {packagePath: data.bintrayPackage})
+                    res.render('associate-package', {repoUuid: repoUuid, packagePath: data.bintrayPackage})
                 }
             });
         }
     );
 
-    app.post('/associate-package', addon.checkValidToken(), function (req, res) {
-        var repoUuid = req.query['repoUuid'];
+    app.post('/associate-package', addon.checkValidToken(), fetchCurrentUsername(), function (req, res) {
+        var repoUuid = req.body.repoUuid;
         var packagePath = req.body.packagePath;
 
         var BintrayPackage = getBintrayPackage();
@@ -251,11 +253,11 @@ module.exports = function (app, addon) {
                 });
             }
         });
-        res.render('associate-package', {packagePath: packagePath});
+        res.render('associate-package', {repoUuid: repoUuid, packagePath: packagePath});
     });
 
-    app.get('/associate-bamboo-build', addon.authenticate(), function (req, res) {
-        var bitBucketUsername = req.query['bitBucketUsername'];
+    app.get('/associate-bamboo-build', addon.authenticate(), fetchCurrentUsername(), function (req, res) {
+        var bitBucketUsername = req.bitBucketUsername;
         var repoUuid = req.query['repoUuid'];
         var builds = [];
         console.log('FOUND UUID' + repoUuid);
@@ -286,14 +288,14 @@ module.exports = function (app, addon) {
                                     return;
                                 }
                                 if (data == null) {
-                                    res.render('associate-bamboo-build', {builds: builds});
+                                    res.render('associate-bamboo-build', {repoUuid: repoUuid, builds: builds});
 
                                 } else {
                                     var selected = [{
                                         "buildName": data.bambooBuildName,
                                         "buildKey": data.bambooBuildKey
                                     }];
-                                    res.render('associate-bamboo-build', {builds: builds, selected: selected});
+                                    res.render('associate-bamboo-build', {repoUuid: repoUuid, builds: builds, selected: selected});
                                 }
                             });
                         });
@@ -311,9 +313,9 @@ module.exports = function (app, addon) {
 
     });
 
-    app.post('/associate-bamboo-build', addon.checkValidToken(), function (req, res) {
-        var bitBucketUsername = req.query['bitBucketUsername'];
-        var repoUuid = req.query['repoUuid'];
+    app.post('/associate-bamboo-build', addon.checkValidToken(), fetchCurrentUsername(), function (req, res) {
+        var bitBucketUsername = req.bitBucketUsername;
+        var repoUuid = req.body.repoUuid;
         var bambooBuildName = req.body["select-build"];
         var bambooBuildKey = bambooBuildName.split(":")[1];
         var BambooBuild = getBambooBuild();
@@ -348,10 +350,10 @@ module.exports = function (app, addon) {
             }
         });
         var selected = [{"buildName": bambooBuildName, "buildKey": null}];
-        res.render('associate-bamboo-build', {selected: selected});
+        res.render('associate-bamboo-build', {repoUuid: repoUuid, selected: selected});
     });
-    app.get('/associate-artifactory-build', addon.authenticate(), function (req, res) {
-        var bitBucketUsername = req.query['bitBucketUsername'];
+    app.get('/associate-artifactory-build', addon.authenticate(), fetchCurrentUsername(), function (req, res) {
+        var bitBucketUsername = req.bitBucketUsername;
         var repoUuid = req.query['repoUuid'];
         var builds;
         console.log('FOUND UUID' + repoUuid);
@@ -382,10 +384,10 @@ module.exports = function (app, addon) {
                                 return;
                             }
                             if (data == null) {
-                                res.render('associate-artifactory-build', {builds: builds})
+                                res.render('associate-artifactory-build', {repoUuid: repoUuid, builds: builds})
                             } else {
                                 var selected = [{'uri': data.artifactoryBuild}];
-                                res.render('associate-artifactory-build', {builds: builds, selected: selected})
+                                res.render('associate-artifactory-build', {repoUuid: repoUuid, builds: builds, selected: selected})
                             }
                         });
                     });
@@ -401,9 +403,9 @@ module.exports = function (app, addon) {
         });
     });
 
-    app.post('/associate-artifactory-build', addon.checkValidToken(), function (req, res) {
-        var bitBucketUsername = req.query['bitBucketUsername'];
-        var repoUuid = req.query['repoUuid'];
+    app.post('/associate-artifactory-build', addon.checkValidToken(), fetchCurrentUsername(), function (req, res) {
+        var bitBucketUsername = req.bitBucketUsername;
+        var repoUuid = req.body.repoUuid;
         var artifactoryBuild = req.body["select-build"];
         var ArtifactoryBuild = getArtifactoryBuild();
         ArtifactoryBuild.findOne({where: {bitBucketRepoUuid: repoUuid}}, function (err, data) {
@@ -435,47 +437,11 @@ module.exports = function (app, addon) {
             }
         });
         var selected = [{'uri': artifactoryBuild}];
-        res.render('associate-artifactory-build', {selected: selected});
+        res.render('associate-artifactory-build', {repoUuid: repoUuid, selected: selected});
     });
 
-    app.get('/browse-package-versions', addon.authenticate(), function (originalReq, originalRes) {
-            var httpClient = addon.httpClient(originalReq);
-
-            var repoUuid = originalReq.query['repoUuid'];
-
-            var BintrayPackage = getBintrayPackage();
-            BintrayPackage.findOne({where: {bitBucketRepoUuid: repoUuid}}, function (err, data) {
-                if (err) {
-                    originalRes.send('Error occurred while querying for an already existing associated Bintray package: ' + err.message);
-                    return;
-                }
-                if ((data == null) || (data.bintrayPackage == null)) {
-                    var repoPath = originalReq.query['repoPath'];
-
-                    var repoChangeset = repoChangesetUrl(repoPath);
-                    httpClient.get(repoChangeset, function (changesetErr, changesetResponse, rawChangesetData) {
-                        var rev = latestRev(rawChangesetData);
-
-                        var bintrayRepoFile = bintrayRepoFileUrl(originalReq.query.repoPath, rev);
-                        httpClient.get(bintrayRepoFile, function (bintrayRepoFileErr, bintrayRepoFileResponse, bintrayRepoFileData) {
-
-                            var bintrayRepoFileContent = JSON.parse(bintrayRepoFileData).data;
-                            var bintrayRepoFile = JSON.parse(bintrayRepoFileContent);
-
-                            var options = bintrayRequestOptions(bintrayRepoFile.path);
-                            requestBintrayPackageInfo(options, originalRes);
-                        });
-                    });
-                } else {
-                    var options = bintrayRequestOptions(data.bintrayPackage);
-                    requestBintrayPackageInfo(options, originalRes);
-                }
-            });
-        }
-    );
-
-    app.get('/triggerBuild/:planKey/:bitBucketUsername', function (req, res) {
-        var bitBucketUsername = req.params.bitBucketUsername;
+    app.get('/triggerBuild/:planKey', addon.checkValidToken(), fetchCurrentUsername(), function (req, res) {
+        var bitBucketUsername = req.bitBucketUsername;
         var planKey = req.params.planKey;
         var post_data = '?stage&ExecuteAllStages';
         bambooRequestOptions('queue/' + planKey, bitBucketUsername, function (options) {
@@ -506,7 +472,8 @@ module.exports = function (app, addon) {
         var Artifactory_url = reqQ.query.url;
         var host_url = url.parse(Artifactory_url);
         var port;
-        if (host_url.protocol === "http") {
+        console.log("%j", host_url);
+        if (host_url.protocol === "http:") {
             port = 80;
         } else {
             port = 443;
@@ -522,20 +489,25 @@ module.exports = function (app, addon) {
             },
             auth: username + ':' + password
         };
+        console.log("%j", options);
         if (options != null) {
             var protocol = options.nameProtocol === "https" ? https : http;
             reqQ = protocol.request(options, function (res) {
-                console.log(res.statusCode);
-                res.on('data', function (d) {
-                    process.stdout.write("Response from: " + options.host + "for Ping is: " + d);
-                    resQ.send("Connection " + d);
-                });
+                var statusCode = res.statusCode
+                console.log(statusCode);
+                resQ.send("Connection " + statusCode);
             });
+            reqQ.setTimeout(10000, function () {
+                reqQ.abort();
+                resQ.send("Connection timeout");
+            })
             reqQ.end();
 
             reqQ.on('error', function (e) {
                 console.error(e);
-                reqQ.send(e)
+                if (!resQ.headersSent) {
+                    resQ.send(e.message)
+                }
             });
         }
     });
@@ -546,7 +518,7 @@ module.exports = function (app, addon) {
         var bamboo_url = reqQ.query.url;
         var host_url = url.parse(bamboo_url);
         var port;
-        if (host_url.protocol === "http") {
+        if (host_url.protocol === "http:") {
             port = 80;
         } else {
             port = 443;
@@ -565,27 +537,31 @@ module.exports = function (app, addon) {
         if (options != null) {
             var protocol = options.nameProtocol === "https" ? https : http;
             reqQ = protocol.request(options, function (res) {
-                console.log(res.statusCode);
-                res.on('data', function (d) {
-                    process.stdout.write("Response from: " + options.host + "for Ping is: " + d);
-                    resQ.send("Connection " + res.statusCode);
-                });
+                var statusCode = res.statusCode
+                console.log(statusCode);
+                resQ.send("Connection " + statusCode);
             });
+            reqQ.setTimeout(10000, function () {
+                reqQ.abort();
+                resQ.send("Connection timeout");
+            })
             reqQ.end();
             reqQ.on('error', function (e) {
                 console.error(e);
-                reqQ.send(e)
+                if (!resQ.headersSent) {
+                  resQ.send(e.message)
+                }
             });
         }
 
 
     });
 
-    app.get('/downloadArchive/:bitBucketUsername/:buildName/:buildNumber', function (originalRequest, originalResponse) {
-        var bitBucketUsername = originalRequest.params.bitBucketUsername;
+    app.get('/downloadArchive/:buildName/:buildNumber', addon.checkValidToken(), fetchCurrentUsername(), function (originalRequest, originalResponse) {
+        var bitBucketUsername = originalRequest.bitBucketUsername;
         var buildName = originalRequest.params.buildName;
         var buildNumber = originalRequest.params.buildNumber;
-        var file_name = buildName + "_" + buildNumber + ".zip";
+        var file_name = buildName + "_" + buildNumber + ".tar.gz";
         var file = fs.createWriteStream(file_name);
         var post_data = '{"buildName":"' + buildName + '","buildNumber":"' + buildNumber + '","archiveType":"tar.gz"}';
         var body = '';
@@ -621,8 +597,8 @@ module.exports = function (app, addon) {
 
     });
 
-    app.get('/jfrog', addon.authenticate(), function (req, res) {
-        var bitBucketUsername = req.query['bitBucketUsername'];
+    app.get('/jfrog', addon.authenticate(), fetchCurrentUsername(), function (req, res) {
+        var bitBucketUsername = req.bitBucketUsername;
         var repoUuid = req.query['repoUuid'];
         var BambooBuild = getBambooBuild();
         var buildInfo = [];
@@ -736,8 +712,8 @@ module.exports = function (app, addon) {
                                                                                 });
                                                                             }
                                                                         } else {
-                                                                            var post_data = '[{"buildNumber":["' + buildInfo[key].artBuildNumber + '"]},{"buildName":["' + buildInfo[key].artName.replace(/ /g, "%20") + '"]}]';
-                                                                            var path = 'search/attributes/' + data.bintrayPackage + 'versions';
+                                                                            var post_data = '[{"build.number":["' + buildInfo[key].artBuildNumber + '"]},{"build.name":["' + buildInfo[key].artName + '"]}]';
+                                                                            var path = 'search/attributes/' + data.bintrayPackage + '/versions';
                                                                             bintrayRequestOptionsPost(path, bitBucketUsername, post_data, function (options) {
                                                                                 if (options != null) {
                                                                                     var post_req = https.request(options, function (resPost) {
@@ -909,7 +885,7 @@ module.exports = function (app, addon) {
             }
             if (data != null && data.url != null && data.url != "" && data.bambooUsername != null && data.bambooUsername != "" && data.password != null && data.password != "") {
                 var host_url = url.parse(data.url);
-                if (host_url.protocol === "http") {
+                if (host_url.protocol === "http:") {
                     port = 80;
                 } else {
                     port = 443;
@@ -942,7 +918,7 @@ module.exports = function (app, addon) {
             }
             if (data != null && data.url != null && data.url != "" && data.artifactoryUsername != null && data.artifactoryUsername != "" && data.password != null && data.password != "") {
                 var host_url = url.parse(data.url);
-                if (host_url.protocol === "http") {
+                if (host_url.protocol === "http:") {
                     port = 80;
                 } else {
                     port = 443;
@@ -992,5 +968,27 @@ module.exports = function (app, addon) {
         });
 
         bintrayReq.end();
+    }
+
+    function getCurrentUsername(req, res, cb) {
+      addon.loadClientInfo(req.context.clientKey)
+        .then(function (clientInfo) {
+            if (clientInfo == null) {
+              throw new Error('Current Username not found!')
+            }
+            cb(clientInfo.principal.username);
+        })
+        .then(undefined, function (error) {
+            res.send('Failed to authenticate request: ' + error.message);
+        });
+    }
+
+    function fetchCurrentUsername() {
+      return function (req, res, next) {
+        getCurrentUsername(req, res, function(currentUsername) {
+            req.bitBucketUsername = currentUsername
+            next()
+        })
+      };
     }
 };

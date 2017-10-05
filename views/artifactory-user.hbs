@@ -3,9 +3,9 @@
     <section class="aui-page-panel-item">
         <h3>Artifactory User</h3>
 
-        <form id="artifactory-user" class="aui" method="post" enctype="multipart/form-data">
             <input type="hidden" name="action" value="artifactory-user">
 
+        <form id="artifactory-user" class="aui" method="post" action="artifactory-user?jwt={{token}}" enctype="application/x-www-form-urlencoded">
             <div class="field-group">
                 <label for="url">URL</label>
                 <input class="text long-field" type="text"

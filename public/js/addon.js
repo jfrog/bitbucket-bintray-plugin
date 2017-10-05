@@ -47,13 +47,16 @@ AJS.$(function () {
         var username = AJS.$('#username').val();
         var password = AJS.$('#password').val();
         var url = AJS.$('#url').val();
+        AJS.$('.button-spinner').spin();
         AJS.$.ajax({
             url: "testArtifactoryConnection?username=" + username + "&password=" + password + "&url=" + url,
             type: "GET",
             success: function(msg){
+                AJS.$('.button-spinner').spinStop();
                 alert(msg);
             }
         });
+        return false;
     });
 });
 
@@ -64,13 +67,18 @@ AJS.$(function () {
         var username = AJS.$('#username').val();
         var password = AJS.$('#password').val();
         var url = AJS.$('#url').val();
+        var queryString = "username=" + encodeURIComponent(username) +
+            "&password=" + encodeURIComponent(password) +
+            "&url=" + encodeURIComponent(url);
+        AJS.$('.button-spinner').spin();
         AJS.$.ajax({
-            url: "testBambooConnection?username=" + username + "&password=" + password + "&url=" + url,
+            url: "testBambooConnection?" + queryString,
             type: "GET",
             success: function(msg){
+                AJS.$('.button-spinner').spinStop();
                 alert(msg);
             }
         });
+        return false;
     });
 });
-

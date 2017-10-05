@@ -1,24 +1,23 @@
 {
+  "expressErrorHandling" : true,
   "development": {
     "bitbucket": true,
     "port": 3000,
     "errorTemplate": true,
-    "consumerKey": "GZNNqSGWu9gKrm9636",
+    "consumerKey": "LkKAPjYJvwvjwCVHf3",
     "store": {
-      "adapter": "jugglingdb",
       "type": "postgres",
-      "url": "postgres://postgres:yiBhV2bv@104.154.17.82:5432/jfrog"
+      "url": "$DATABASE_URL"
     }
   },
   "production": {
-    "port": "$PORT",
+    "port": 3000,
     "bitbucket": true,
     "consumerKey": "GZNNqSGWu9gKrm9636",
     "errorTemplate": true,
-    "localBaseUrl": "https://your-subdomain.herokuapp.com",
     "store": {
       "type": "postgres",
-      "url": "postgres://192.168.99.100:5432/"
+      "url": "$DATABASE_URL"
     },
     "whitelist": [
       "*.jira-dev.com",

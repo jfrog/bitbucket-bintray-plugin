@@ -3,7 +3,7 @@
     <section class="aui-page-panel-item">
         <h3>Bamboo User</h3>
 
-        <form id="bamboo-user" class="aui" method="post" enctype="multipart/form-data">
+        <form id="bamboo-user" class="aui" method="post" action="bamboo-user?jwt={{token}}" enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="action" value="bamboo-user">
 
             <div class="field-group">
