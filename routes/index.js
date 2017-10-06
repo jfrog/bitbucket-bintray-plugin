@@ -561,8 +561,15 @@ module.exports = function (app, addon) {
         var bitBucketUsername = originalRequest.bitBucketUsername;
         var buildName = originalRequest.params.buildName;
         var buildNumber = originalRequest.params.buildNumber;
+
+        if (buildName == '' || buildName == ' ') {
+            originalResponse.send('Build archive not available');
+            originalResponse.end();
+            return;
+        }
+
         var file_name = buildName + "_" + buildNumber + ".tar.gz";
-        var file = fs.createWriteStream(file_name);
+        //var file = fs.createWriteStream(file_name);
         var post_data = '{"buildName":"' + buildName + '","buildNumber":"' + buildNumber + '","archiveType":"tar.gz"}';
         var body = '';
         artifactoryRequestOptions('archive/buildArtifacts', bitBucketUsername, function (options) {
@@ -575,26 +582,25 @@ module.exports = function (app, addon) {
             var protocol = options.nameProtocol === "http" ? http : https;
             var post_req = protocol.request(options, function (res) {
                 res.on('data', function (chunk) {
-                    //console.log(chunk);
-                    // body += chunk;
-                    file.write(chunk);
-
+                    // Send build archive data to user
+                    originalResponse.write(chunk);
                 });
                 res.on('end', function (res) {
-                    // file.write(body);
-                    file.close();
-                    originalResponse.download(file.path);
+                    originalResponse.end();
                 });
             });
             post_req.on('error', function (e) {
                 console.log('problem with request: ' + e.message);
+                originalResponse.send("Failed to download build archive: " + e.message)
             });
-            // post the data
+
+            // Set response headers
+            originalResponse.setHeader('Content-disposition', 'attachment; filename=' + file_name)
+
+            // Request data
             post_req.write(post_data);
             post_req.end();
         });
-
-
     });
 
     app.get('/jfrog', addon.authenticate(), fetchCurrentUsername(), function (req, res) {
