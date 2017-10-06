@@ -569,7 +569,6 @@ module.exports = function (app, addon) {
         }
 
         var file_name = buildName + "_" + buildNumber + ".tar.gz";
-        //var file = fs.createWriteStream(file_name);
         var post_data = '{"buildName":"' + buildName + '","buildNumber":"' + buildNumber + '","archiveType":"tar.gz"}';
         var body = '';
         artifactoryRequestOptions('archive/buildArtifacts', bitBucketUsername, function (options) {
